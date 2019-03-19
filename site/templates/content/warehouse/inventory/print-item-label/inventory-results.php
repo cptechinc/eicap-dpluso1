@@ -36,7 +36,7 @@
 									<div class="list-group">
 										<?php $lotserials = InventorySearchItem::get_all_items_lotserial(session_id(), $item->itemid); ?>
 										<?php foreach ($lotserials as $lotserial) : ?>
-											<div class="list-group-item">
+											<a href="<?= $labelprinting->get_request_labelprintinitURL($lotserial->itemid, $lotserial->get_itemtypeproperty(), $lotserial->get_itemidentifier(), $lotserial->bin); ?>" class="list-group-item">
 												<div class="row">
 													<div class="col-xs-12">
 														<h4 class="list-group-item-heading"><?= strtoupper($lotserial->get_itemtypepropertydesc()) . ": " . $lotserial->get_itemidentifier(); ?></h4>
@@ -46,7 +46,7 @@
 														<?php endif; ?>
 													</div>
 												</div>
-											</div>
+											</a>
 										<?php endforeach; ?>
 									</div>
 								</div>

@@ -1,40 +1,22 @@
 <?php
-	use Dplus\Warehouse\Binr;
+	use Dplus\Warehouse\LabelPrinting;
 
-	$binID = '';
+	$toolbar = false;
 	$whsesession = WhseSession::load(session_id());
 	$whsesession->init();
 	$whseconfig = WhseConfig::load($whsesession->whseid);
-	$binr = new Binr();
-	$config->scripts->append(get_hashedtemplatefileURL('scripts/warehouse/_shared-functions.js'));
-	$config->scripts->append(get_hashedtemplatefileURL('scripts/warehouse/binr.js'));
+	$labelprinting = new LabelPrinting();
+	$config->scripts->append(get_hashedtemplatefileURL('scripts/warehouse/print-labels.js'));
 
 	if ($input->get->scan) {
-		$page->fullURL->query->remove('scan');
 		$scan = $input->get->text('scan');
-		$resultscount = InventorySearchItem::count_all(session_id());
+		$page->title = "Find Item Inquiry for $scan";
+		$resultscount = InventorySearchItem::count_distinct_itemid(session_id());
+		$items = InventorySearchItem::get_all_distinct_itemid(session_id());
+		$page->body = __DIR__."/inventory-results.php";
 
-		if ($resultscount == 0) {
-			$page->body = __DIR__."/inventory-results.php";
-		} elseif ($resultscount == 1) {
-			$item = InventorySearchItem::load_first(session_id());
-			$pageurl = $page->fullURL->getUrl();
-			header("Location: {$config->pages->menu_binr}redir/?action=search-item-bins&itemID=$item->itemid&page=$pageurl");
-		} else {
-			if ($input->get->frombin) {
-				$binID  = $input->get->text('frombin');
-			} else {
-				$binID  = $input->get->text('binID');
-			}
-			$items = InventorySearchItem::get_all_distinct_itemid(session_id(), $binID);
-			$page->body = __DIR__."/inventory-results.php";
-		}
 	} elseif (!empty($input->get->serialnbr) | !empty($input->get->lotnbr) | !empty($input->get->itemID)) {
-		if ($input->get->frombin) {
-			$binID  = $input->get->text('frombin');
-		} else {
-			$binID  = $input->get->text('binID');
-		}
+		$binID = $input->get->text('binID');
 
 		if ($input->get->serialnbr) {
 			$serialnbr = $input->get->text('serialnbr');
@@ -54,17 +36,24 @@
 		}
 
 		if ($resultscount == 1) {
-			if (!empty($session->get('binr'))) {
-				$page->body = __DIR__."/results-screen.php";
+			if (LabelPrintSession::exists(session_id())) {
+				$labelsession = LabelPrintSession::load(session_id());
 			} else {
-				$page->body = __DIR__."/binr-form.php";
+				$labelsession = new LabelPrintSession();
+				$labelsession->set('sessionid', session_id());
+				$labelsession->set('itemid', $item->itemid);
+				$labelsession->set('bin', $item->bin);
+				$labelsession->set('lotserial', $item->lotserial);
+				$labelsession->set('whse', $whsesession->whseid);
 			}
+
+			$page->body = __DIR__."/print-label-form.php";
 		} else {
 			$items = InventorySearchItem::get_all(session_id());
 			$page->body = __DIR__."/inventory-results.php";
 		}
 	} else {
-		$page->body = __DIR__."/item-form.php";
+		$page->body = __DIR__."/inventory-results.php";
 	}
-	$toolbar = false;
+
 	include $config->paths->content."common/include-toolbar-page.php";

@@ -1,13 +1,11 @@
-<?php 
+<?php
 	$bins = ItemBinInfo::find_by_item(session_id(), $item);
 	$currentbins = array();
-	
+
 	foreach ($bins as $bin) {
 		$currentbins[$bin->bin] = $bin->qty;
 	}
-	
 ?>
-
 <div class="modal fade" id="choose-to-bins-modal" tabindex="-1" role="dialog" aria-labelledby="choose-to-bins-modal-label">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
@@ -50,7 +48,7 @@
 								<div class="list-group">
 									<?php $list = $whseconfig->get_binlist(); ?>
 									<?php foreach ($list as $listedbin) : ?>
-										<a href="#" class="list-group-item choose-tobin" data-bin="<?= $currentbin; ?>">
+										<a href="#" class="list-group-item choose-tobin" data-bin="<?= $listedbin->from; ?>">
 											<div class="row">
 												<div class="col-xs-6">
 													<h5 class="list-group-item-heading"><?= $listedbin->from; ?></h5>
